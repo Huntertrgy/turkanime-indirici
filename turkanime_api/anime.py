@@ -3,6 +3,7 @@ from configparser import ConfigParser
 from bs4 import BeautifulSoup as bs4
 
 from .players import url_getir
+from .compile import dosya,get_config
 
 class AnimeSorgula():
     def __init__(self,driver=None):
@@ -67,7 +68,7 @@ class Anime():
 
     def indir(self):
         parser = ConfigParser()
-        parser.read(path.join(".","config.ini"))
+        parser.read(get_config())
         dlfolder = parser.get("TurkAnime","indirilenler")
 
         if not path.isdir(path.join(dlfolder,self.seri)):
@@ -79,7 +80,7 @@ class Anime():
             print(" "*50+f"\r\n{self.driver.title} indiriliyor:")
             url = url_getir(self.driver)
             suffix="--referer https://video.sibnet.ru/" if "sibnet" in url else ""
-            system(f'youtube-dl --no-warnings -o "{path.join(dlfolder,self.seri,bolum)}.%(ext)s" "{url}" {suffix}')
+            system(f'{dosya("youtube-dl.exe")} --no-warnings -o "{path.join(dlfolder,self.seri,bolum)}.%(ext)s" "{url}" {suffix}')
         return True
 
     def oynat(self):
@@ -87,11 +88,11 @@ class Anime():
         url = url_getir(self.driver)
 
         parser = ConfigParser()
-        parser.read(path.join(".","config.ini"))
+        parser.read(get_config())
 
         suffix ="--referrer=https://video.sibnet.ru/ " if  "sibnet" in url else ""
         suffix+= "--msg-level=display-tags=no "
         suffix+="--stream-record={}.mp4 ".format(path.join(".","Kayıtlar",self.bolumler)) if parser.getboolean("TurkAnime","izlerken kaydet") else ""
 
-        system(f'mpv "{url}" {suffix} ')
+        system(f'{dosya("mpv.exe")} "{url}" {suffix} ')
         return True

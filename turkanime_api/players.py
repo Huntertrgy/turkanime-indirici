@@ -5,6 +5,8 @@ from time import time
 from selenium.common.exceptions import NoSuchElementException
 from bs4 import BeautifulSoup as bs4
 
+from .compile import dosya
+
 desteklenen_players = [
     "SIBNET",
     "MAIL",
@@ -38,7 +40,7 @@ def elementi_bekle(selector,_driver):
 def check_video(url):
     """ Video yaşıyor mu kontrol eder """
     print(" "*50+"\rVideo yaşıyor mu kontrol ediliyor..",end="\r")
-    test = sp.Popen(f'youtube-dl --no-warnings -F "{url}"',stdout=sp.PIPE,shell=True)
+    test = sp.Popen(f'{dosya("youtube-dl.exe")} --no-warnings -F "{url}"',stdout=sp.PIPE,shell=True)
     stdout = test.communicate()[0].decode()
     stdexit   = test.returncode
     if stdexit == 0 and "php" not in stdout:

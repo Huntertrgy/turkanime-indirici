@@ -4,10 +4,9 @@ from configparser import ConfigParser
 from PyInquirer import prompt
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from turkanime_api import AnimeSorgula,Anime,gereksinim_kontrol
+from turkanime_api import AnimeSorgula,Anime,dosya,get_config
 
 print('TürkAnimu İndirici - github/Kebablord')
-gereksinim_kontrol()
 
 def at_exit(): # Program kapatıldığında
     print(" "*50+"\rProgram kapatılıyor..",end="\r")
@@ -22,7 +21,7 @@ profile.set_preference('permissions.default.image', 2)
 profile.set_preference("network.proxy.type", 0)
 
 if name == 'nt': # WINDOWS
-    driver = webdriver.Firefox(profile, options=options,service_log_path='NUL', executable_path=r'geckodriver.exe')
+    driver = webdriver.Firefox(profile, options=options,service_log_path='NUL', executable_path=dosya('geckodriver.exe'))
 else:            # LINUX
     driver = webdriver.Firefox(profile, options=options, service_log_path='/dev/null')
 
@@ -71,7 +70,7 @@ while True:
     elif "Ayarlar" in islem:
         parser = ConfigParser()
         while True:
-            parser.read(path.join(".","config.ini"))
+            parser.read(get_config())
             isAutosave   = parser.getboolean("TurkAnime","izlerken kaydet")
             dlFolder     = parser.get("TurkAnime","indirilenler")
             opsiyon = prompt([{
@@ -92,7 +91,7 @@ while True:
             else:
                 break
 
-            with open("./config.ini","w") as f:
+            with open(get_config(),"w") as f:
                 parser.write(f)
 
     elif "Kapat" in islem:

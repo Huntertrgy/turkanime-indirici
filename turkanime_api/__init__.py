@@ -1,6 +1,7 @@
 from sys import exit as kapat
 import subprocess as sp
 from .anime import AnimeSorgula,Anime
+from .compile import dosya,get_config
 
 def gereksinim_kontrol():
     """ Gereksinimlerin erişilebilir olup olmadığını kontrol eder """
