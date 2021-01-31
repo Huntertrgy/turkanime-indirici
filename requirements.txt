@@ -1,5 +1,6 @@
-PyInquirer
+questionary
 selenium
 youtube-dl
 bs4
 easygui
+rich

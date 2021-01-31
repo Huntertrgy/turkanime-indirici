@@ -1,6 +1,7 @@
 from os import system,path,mkdir
 from configparser import ConfigParser
 from bs4 import BeautifulSoup as bs4
+from rich.progress import Progress, BarColumn, SpinnerColumn
 
 from .players import url_getir
 from .compile import dosya,get_config
@@ -8,54 +9,48 @@ from .compile import dosya,get_config
 class AnimeSorgula():
     def __init__(self,driver=None):
         self.driver=driver
-        self.seri=None
+        self.anime_ismi=None
+        self.tamliste=None
 
-    def anime_ara(self, aranan_anime):
-        """ Animeyi arayıp sonuçları {title,slug,code} formatında döndürür. """
-        print(" "*50+"\rTürkanimeye bağlanılıyor..",end="\r")
-        self.driver.get(f"https://www.turkanime.net/arama?arama={aranan_anime}")
-        liste = []
-        if "/anime/" in self.driver.current_url:
-            liste.append({
-                "title" : self.driver.title,
-                "slug"  : self.driver.current_url.split("anime/")[1],
-                "code"  : self.driver.find_element_by_css_selector(".imaj img").get_attribute("data-src").split("serilerb/")[1][:-4]
-            })
-            return liste
+    def get_seriler(self):
+        """ Sitedeki tüm animeleri [{name:*,value:*}..] formatında döndürür. """
+        with Progress(SpinnerColumn(), '[progress.description]{task.description}', BarColumn(bar_width=40)) as progress:
+            task = progress.add_task("[cyan]Anime listesi getiriliyor..", start=False)
+            if self.tamliste:
+                progress.update(task,visible=False)
+                return self.tamliste.keys()
 
-        for card in self.driver.find_elements_by_css_selector(".panel.panel-visible"):
-            liste.append({
-                "title" : card.find_element_by_class_name("panel-ust-ic").text,
-                "slug"  : card.find_element_by_tag_name("a").get_attribute("href").split("anime/")[1],
-                "code"  : card.find_element_by_tag_name("img").get_attribute("data-src").split("seriler/")[1][:-4]
-            })
-        return liste
-
-    def get_bolumler(self, anime_code):
-        """ Animenin bölümlerini (bölüm,title) formatında döndürür. """
-        print(" "*50+"\rBölümler yükleniyor..",end="\r")
-        raw = self.driver.execute_script(f"return $.get('https://www.turkanime.net/ajax/bolumler&animeId={anime_code}')")
-        soup = bs4(raw,"html.parser")
-        soup.findAll("a",{"title":"İzlediklerime Ekle"})
-
-        bolumler = []
-        for bolum in soup.findAll("span",{"class":"bolumAdi"}):
-            bolumler.append(
-                (bolum.text, bolum.findParent().get("href").split("video/")[1])
+            soup = bs4(
+                    self.driver.execute_script("return $.get('https://www.turkanime.net/ajax/tamliste')"),
+                "html.parser"
             )
-        return bolumler
+            raw_series, self.tamliste = soup.findAll('span',{"class":'animeAdi'}) , {}
+            for seri in raw_series:
+                self.tamliste[seri.text] = seri.findParent().get('href').split('anime/')[1]
+            progress.update(task,visible=False)
+            return [seri.text for seri in raw_series]
 
-    def listele(self,answers):
-        """ PyInquirer İçin Seçenek Listele """
-        # Bölümler
-        if 'anime_ismi' in answers:
-            results = self.get_bolumler(answers["anime_ismi"][1])
-            self.seri=answers["anime_ismi"][0]
-            return [{"name":title,"value":slug} for title,slug in results]
+    def get_bolumler(self, isim):
+        """ Animenin bölümlerini {bölüm,title} formatında döndürür. """
+        with Progress(SpinnerColumn(), '[progress.description]{task.description}', BarColumn(bar_width=40)) as progress:
+            task = progress.add_task("[cyan]Bölümler getiriliyor..", start=False)
+            anime_slug=self.tamliste[isim]
+            raw = self.driver.execute_script(f"return $.get('/anime/{anime_slug}')")
+            soup = bs4(raw,"html.parser")
+            self.anime_ismi = soup.title.text
+            anime_code = soup.find('meta',{'name':'twitter:image'}).get('content').split('lerb/')[1][:-4]
 
-        # Anime arama sonuçları
-        results = self.anime_ara(answers["anahtar_kelime"])
-        return [{"name":i["title"],"value":(i["slug"],i["code"])} for i in results]
+            raw = self.driver.execute_script(f"return $.get('https://www.turkanime.net/ajax/bolumler&animeId={anime_code}')")
+            soup = bs4(raw,"html.parser")
+
+            bolumler = []
+            for bolum in soup.findAll("span",{"class":"bolumAdi"}):
+                bolumler.append({
+                    'name':bolum.text,
+                    'value':bolum.findParent().get("href").split("video/")[1]
+                })
+            progress.update(task,visible=False)
+            return bolumler
 
 
 class Anime():
@@ -84,8 +79,15 @@ class Anime():
         return True
 
     def oynat(self):
-        self.driver.get(f"https://turkanime.net/video/{self.bolumler}")
+        with Progress(SpinnerColumn(), '[progress.description]{task.description}', BarColumn(bar_width=40)) as progress:
+            task = progress.add_task("[cyan]Sayfa yükleniyor..", start=False)
+            self.driver.get(f"https://turkanime.net/video/{self.bolumler}")
+            progress.update(task,visible=False)
         url = url_getir(self.driver)
+
+        if not url:
+            print("Çalışan bir video bulunamadı.")
+            return False
 
         parser = ConfigParser()
         parser.read(get_config())
