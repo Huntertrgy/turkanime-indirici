@@ -1,4 +1,4 @@
-""" TürkAnimu Downloader v5.3 """
+""" TürkAnimu Downloader v6 """
 from os import path,mkdir
 from sys import exit as kapat
 from atexit import register
@@ -8,14 +8,14 @@ from rich.progress import Progress, BarColumn, SpinnerColumn
 from rich import print as rprint
 from questionary import select,autocomplete,prompt
 
-from turkanime_api import AnimeSorgula,Anime,dosya,get_config
+from turkanime_api import AnimeSorgula,Anime,get_config,add_new_options
 from turkanime_api import elementi_bekle,webdriver_hazirla,prompt_tema
 
 with Progress(SpinnerColumn(), '[progress.description]{task.description}', BarColumn(bar_width=40)) as progress:
     task = progress.add_task("[cyan]Sürücü başlatılıyor..", start=False)
-    driver = webdriver_hazirla()
+    driver = webdriver_hazirla(progress)
     register(lambda: (print("Program kapatılıyor..",end="\r") or driver.quit()))
-
+    add_new_options()
     progress.update(task, description="[cyan]TürkAnime'ye bağlanılıyor..")
     try:
         driver.get("https://turkanime.net/kullanici/anonim")
@@ -47,7 +47,6 @@ while True:
                 style=prompt_tema
             ).ask()
 
-            # Anime'yi ara ve bölüm seç
             secilen_bolumler = prompt({
                 'type': "checkbox" if "indir" in islem else "select",
                 'message': 'Bölüm seç',
@@ -72,18 +71,26 @@ while True:
         while True:
             parser.read(path.join(".",get_config() ))
             isAutosave   = parser.getboolean("TurkAnime","izlerken kaydet")
+            isAutosub    = parser.getboolean("TurkAnime","manuel fansub")
             dlFolder     = parser.get("TurkAnime","indirilenler")
             opsiyon = select(
                 'İşlemi seç',
                 ['İndirilenler klasörünü seç',
                 f'İzlerken kaydet: {isAutosave}',
+                f'Manuel fansub seç: {isAutosub}',
                 'Geri dön'],
                 style=prompt_tema,
-                instruction=" ",
+                instruction=" "
                 ).ask()
             if opsiyon == 'İndirilenler klasörünü seç':
                 from easygui import diropenbox
-                parser.set('TurkAnime','indirilenler',diropenbox())
+                indirilenler_dizin=diropenbox()
+                if indirilenler_dizin:
+                    parser.set('TurkAnime','indirilenler',indirilenler_dizin)
+
+            elif opsiyon == f'Manuel fansub seç: {isAutosub}':
+                parser.set('TurkAnime','manuel fansub',str(not isAutosub))
+
             elif opsiyon == f'İzlerken kaydet: {isAutosave}':
                 parser.set('TurkAnime','izlerken kaydet',str(not isAutosave))
                 if not path.isdir(path.join(".","Kayıtlar")):
