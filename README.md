@@ -13,10 +13,10 @@ Türkanime için terminal video oynatıcı ve indirici. İtinayla her bölümü 
 ```Sibnet, Odnoklassinki, Sendvid, Mail.ru, VK, Google+, Myvi, GoogleDrive, Yandisk, Vidmoly, Yourupload, Dailymotion```
 
  ### İzleme ekranı
- ![indirme.gif](ss_izle.gif)
+ ![izleme.gif](https://raw.githubusercontent.com/KebabLord/turkanime-indirici/master/ss_izle.gif)
 
  ### İndirme ekranı
- ![indirme.gif](ss_indir.gif)
+ ![indirme.gif](https://raw.githubusercontent.com/KebabLord/turkanime-indirici/master/ss_indir.gif)
 
 
 ### Yapılacaklar:
