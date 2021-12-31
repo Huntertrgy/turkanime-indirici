@@ -20,7 +20,7 @@ def main():
 
         progress.update(task, description="[cyan]TürkAnime'ye bağlanılıyor..")
         try:
-            driver.get("https://turkanime.net/kullanici/anonim")
+            driver.get("https://turkanime.co/kullanici/anonim")
             elementi_bekle(".navbar-nav",driver)
         except (ConnectionError,WebDriverException):
             progress.update(task,visible=False)
