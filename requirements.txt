@@ -1,6 +1,7 @@
-questionary
-selenium
-youtube-dl
-bs4
+beautifulsoup4
 easygui
+prompt_toolkit
+py7zr
+questionary
 rich
+selenium

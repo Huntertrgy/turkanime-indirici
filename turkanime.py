@@ -8,17 +8,23 @@ from rich.progress import Progress, BarColumn, SpinnerColumn
 from rich import print as rprint
 from questionary import select,autocomplete,prompt
 
-from turkanime_api import AnimeSorgula,Anime,get_config,add_new_options
+from turkanime_api import AnimeSorgula,Anime,gereksinim_kontrol,dosya_init,dosya
 from turkanime_api import elementi_bekle,webdriver_hazirla,prompt_tema
 
+
 with Progress(SpinnerColumn(), '[progress.description]{task.description}', BarColumn(bar_width=40)) as progress:
+#    global progress
     task = progress.add_task("[cyan]Sürücü başlatılıyor..", start=False)
+
+    dosya_init()
+    gereksinim_kontrol(progress)
+
     driver = webdriver_hazirla(progress)
     register(lambda: (print("Program kapatılıyor..",end="\r") or driver.quit()))
-    add_new_options()
+
     progress.update(task, description="[cyan]TürkAnime'ye bağlanılıyor..")
     try:
-        driver.get("https://turkanime.net/kullanici/anonim")
+        driver.get("https://turkanime.co/kullanici/anonim")
         elementi_bekle(".navbar-nav",driver)
     except (ConnectionError,WebDriverException):
         progress.update(task,visible=False)
@@ -69,7 +75,7 @@ while True:
     elif "Ayarlar" in islem:
         parser = ConfigParser()
         while True:
-            parser.read(path.join(".",get_config() ))
+            parser.read(dosya("TurkAnimu.ini"))
             isAutosave   = parser.getboolean("TurkAnime","izlerken kaydet")
             isAutosub    = parser.getboolean("TurkAnime","manuel fansub")
             dlFolder     = parser.get("TurkAnime","indirilenler")
@@ -98,7 +104,7 @@ while True:
             else:
                 break
 
-            with open(get_config(),"w") as f:
+            with open(dosya("TurkAnimu.ini"),"w") as f:
                 parser.write(f)
 
     elif "Kapat" in islem:
