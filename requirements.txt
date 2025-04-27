@@ -4,7 +4,8 @@ selenium==3.141.0
 bs4==0.0.1
 easygui==0.98.2
 rich==9.10.0
-fastapi
-uvicorn
 requests
 beautifulsoup4
+fastapi==0.95
+uvicorn==0.18
+pydantic==1.9
