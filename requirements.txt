@@ -9,3 +9,4 @@ beautifulsoup4
 fastapi==0.95
 uvicorn==0.18
 pydantic==1.9
+h11
