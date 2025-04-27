@@ -1,17 +1,12 @@
+import os
 from fastapi import FastAPI
-import subprocess
+import uvicorn
 
 app = FastAPI()
 
-@app.get("/")
-def read_root():
-    return {"message": "Turkanime Downloader API is running."}
+# Eğer 'PORT' ortam değişkeni varsa, onu al. Yoksa 8080'i kullan.
+port = int(os.getenv("PORT", 8080))  # Default port 8080
 
-@app.get("/download")
-def download_anime(anime_name: str):
-    try:
-        # Call your script (assume it's main.py and accepts anime name)
-        result = subprocess.run(["python", "main.py", anime_name], capture_output=True, text=True)
-        return {"output": result.stdout}
-    except Exception as e:
-        return {"error": str(e)}
+# Uygulama başlatma işlemi
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=port)
